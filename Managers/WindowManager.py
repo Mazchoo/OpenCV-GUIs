@@ -30,7 +30,7 @@ class WindowManager:
     def createWindow(self):
         cv2.namedWindow(self._windowName)
         if self.mouseCallback:
-            cv2.setMouseCallback(self._windowName, onMouseEvent)
+            cv2.setMouseCallback(self._windowName, self.mouseCallback)
         self._isWindowCreated = True
     
     

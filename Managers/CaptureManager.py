@@ -2,14 +2,14 @@ import cv2
 import numpy as np
 import time
 
+import pdb
+
 class CaptureManager:
 
     def __init__(self, capture):
 
         self._capture = capture
-        self._channel = 0
         self._enteredFrame = False
-        self._frame = None
         self._imageFileName = None
         self._videoFilename = None
         self._videoEncoding = None
@@ -21,23 +21,10 @@ class CaptureManager:
 
 
     @property
-    def channel(self):
-        return self._channel
-
-
-    @channel.setter
-    def channel(self, value):
-        if self._channel != value:
-            self._channel = value
-            self._frame = None
-
-
-    @property
     def frame(self):
-        if self._enteredFrame and self._frame is None:
-            _, self._frame = self._capture.retrieve()
-        return self._frame
-
+        if self._enteredFrame:
+            _, frame = self._capture.retrieve()
+        return frame
 
     @property
     def isWritingImage(self):
@@ -72,8 +59,7 @@ class CaptureManager:
             cv2.imwrite(self._imageFilename, frame)
             self._imageFilename = None
 
-        self._writeVideoFrame()
-        self._frame = None
+        self._writeVideoFrame(frame)
         self._enteredFrame = False
 
 
@@ -81,7 +67,7 @@ class CaptureManager:
         self._imageFilename = filename
 
 
-    def startWritingVideo(self, filename, encoding=cv2.VideoWriter_fourcc('I', '4', '2', '0')):
+    def startWritingVideo(self, filename, encoding=cv2.VideoWriter_fourcc('M','J','P','G')):
         self._videoFilename = filename
         self._videoEncoding = encoding
 
@@ -92,7 +78,7 @@ class CaptureManager:
         self._videoWriter = None
 
 
-    def _writeVideoFrame(self):
+    def _writeVideoFrame(self, frame):
 
         if not self.isWritingVideo:
             return
@@ -106,20 +92,22 @@ class CaptureManager:
                 else:
                     fps = self._fpsEstimate
 
-                size= (int(self._capture.get(
-                           cv2.CAP_PROP_FRAME_WIDTH)),
-                       int(self._capture.get(
-                           cv2.CAP_PROP_FRAME_HEIGHT)))
+            size= (int(self._capture.get(
+                        cv2.CAP_PROP_FRAME_WIDTH)),
+                    int(self._capture.get(
+                        cv2.CAP_PROP_FRAME_HEIGHT)))
 
-                self._videoWriter = cv2.VideoWriter(
-                        self._videoFilename, self._videoEncoding, fps, size
-                )
+            self._videoWriter = cv2.VideoWriter(
+                    self._videoFilename, self._videoEncoding, fps, size
+            )
 
-        self._videoWriter.write(self._frame)
+        self._videoWriter.write(frame)
 
 
     def close(self):
         self._capture.release()
+        if not self._videoWriter is None:
+            self._videoWriter.release()
 
 
 if __name__ == '__main__':

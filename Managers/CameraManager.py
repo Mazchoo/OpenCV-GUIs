@@ -12,23 +12,15 @@ class CameraManager:
         )
         self._captureManager = CaptureManager(capture)
         self.pipeline = pipeline
-        self.valid    = False
 
-        try:
-            self._captureManager.enterFrame()
-            frame = self._captureManager.frame
+        # Write one frame
+        self._captureManager.enterFrame()
+        frame = self._captureManager.frame
 
-            if not pipeline is None:
-                assert(type(pipeline(frame)) == np.ndarray)
+        if not pipeline is None:
+            assert(type(pipeline(frame)) == np.ndarray)
 
-            self._captureManager.exitFrame(frame)
-            self.valid = True
-
-        except Exception as e:
-            print(e)
-            self._captureManager.exitFrame(None)
-            print('Error! Could not process one frame.')
-
+        self._captureManager.exitFrame(frame)
 
     def addKeyCallback(self, key, func):
         self._windowManager.keyPressCallbacks[key] = func
@@ -40,10 +32,9 @@ class CameraManager:
 
 
     def run(self):
-        if not self.valid: return
         self._windowManager.createWindow()
 
-        while self._windowManager.isWindowCreated and self.valid:
+        while self._windowManager.isWindowCreated:
             self._captureManager.enterFrame()
 
             frame = self._captureManager.frame
@@ -57,13 +48,13 @@ class CameraManager:
             self._windowManager.proccessKeyEvents()
 
 
+    def writeVideo(self, filename):
+        self._captureManager.startWritingVideo(filename)
+
+
     def close(self):
         self._windowManager.close()
         self._captureManager.close()
-
-
-    def addBasicButtons(self):
-        pass
 
 
 if __name__ == '__main__':
